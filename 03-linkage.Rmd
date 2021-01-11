@@ -1,0 +1,47 @@
+---
+title: "Linkage mapping"
+author: "PURA acuicultura"
+date: "1/11/2021"
+output: html_document
+---
+
+```{r lm_setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# An introduction to linkage mapping
+Here we create a simple simulator to demonstrate the underlying principles of linkage mapping.
+
+Simulations are conducted using `AlphaSimR`. Analysis is carried out using Tidyverse tools such as `dplyr` and `ggplot`. The simulator is constructed with three independent variables, chromosome number, segregation site number, and offspring number as a foundation for understanding how these variables contribute to the precision and accuracy of the linkage maps themselves.
+
+```{r lm_variables, warning=FALSE, message=FALSE, error=FALSE}
+library(AlphaSimR)
+library(tidyverse)
+
+n_chr <- 1 # variable 1, number of chromosomes in genome
+n_seg <- 10 # variable 2, number of segregation sites per chromosome
+n_off <- 100 # variable 3. number of offspring per parental cross
+```
+
+The selection of parents is the most critical aspect of successful linkage mapping. Parents are not selected based on specific traits or physical health but on characteristics of their genomes that facilitate mapping. We will start with the most 'textbook' of approaches, crossing of a completely heterozygous  individual (10) with a completely homozygous recessive individual (00). under such circumstances, offspring are expected to be 50% heterozygous (10) and 50% homozygous recessive (00). As such, any deviation from these percentages provides evidence for linkage between segregation sites, and the data needed to create the linkage map itself.
+
+## Creating the parental haplotypes
+
+Rather than using `quickHaplo()`, custom haplotypes will be defined using the `newMapPop()` function. As arguments, `newMapPop()` requires a genetic map and a list of corresponding haplotypes. The following code first creates the genetic map. The `seq()` function is used to create a numerical list from 0 to 1. By setting `length.out` equal to the `n_seg`, a list of equally sized segregation sites is created. It should be noted that defining the genetic map from 0 to 1 results in a chromosome length of 1 Morgan (NB: 100 cM).
+
+```{r lm_haplotypes}
+genMap <- list(seq(0, 1, length.out = n_seg)) # list of segregation sites
+round(unlist(genMap[1]),2) # show the list of segregation sites
+
+chr1 <- c(rep(1, n_seg), # haplotype 1 of heterozygote parent
+          rep(0, n_seg), # haplotype 2 of heterozygote parent
+          rep(0, n_seg), # haplotypes 1 of homozygous parent
+          rep(0, n_seg)) # haplotypes 2 of homozygous parent
+
+chr1 <- matrix(chr1, nrow = 4, ncol = n_seg, byrow = TRUE) # coerce into a matrix
+chr1 # show the matrix of haplotypes
+
+pop_haplos <- newMapPop(genMap = genMap,
+                        haplotypes = list(chr1))
+```
+

@@ -4,11 +4,11 @@
 
   <meta charset="utf-8" />
   <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-  <title>Analysis of molecular data from fisheries and aquaculture</title>
-  <meta name="description" content="Analysis of molecular data from fisheries and aquaculture" />
+  <title>Chapter 3 An introduction to linkage mapping | Analysis of molecular data from fisheries and aquaculture</title>
+  <meta name="description" content="Chapter 3 An introduction to linkage mapping | Analysis of molecular data from fisheries and aquaculture" />
   <meta name="generator" content="bookdown 0.21 and GitBook 2.6.7" />
 
-  <meta property="og:title" content="Analysis of molecular data from fisheries and aquaculture" />
+  <meta property="og:title" content="Chapter 3 An introduction to linkage mapping | Analysis of molecular data from fisheries and aquaculture" />
   <meta property="og:type" content="book" />
   
   
@@ -16,7 +16,7 @@
   
 
   <meta name="twitter:card" content="summary" />
-  <meta name="twitter:title" content="Analysis of molecular data from fisheries and aquaculture" />
+  <meta name="twitter:title" content="Chapter 3 An introduction to linkage mapping | Analysis of molecular data from fisheries and aquaculture" />
   
   
   
@@ -31,8 +31,8 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black" />
   
   
+<link rel="prev" href="differentiation-of-populations-using-pca.html"/>
 
-<link rel="next" href="differentiation-of-populations-using-pca.html"/>
 <script src="libs/jquery-2.2.3/jquery.min.js"></script>
 <link href="libs/gitbook-2.6.7/css/style.css" rel="stylesheet" />
 <link href="libs/gitbook-2.6.7/css/plugin-table.css" rel="stylesheet" />
@@ -166,29 +166,47 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
           <div class="page-inner">
 
             <section class="normal" id="section-">
-<div id="header">
-<h1 class="title">Analysis of molecular data from fisheries and aquaculture</h1>
-<p class="author"><em>PURA acuicultura</em></p>
-<p class="date"><em>2021-01-11</em></p>
-</div>
-<div id="introduction" class="section level1">
-<h1><span class="header-section-number">Chapter 1</span> Introduction</h1>
-<p>It has been nearly 50 years since researchers first applied protein allozymes to the differentiation of fish stocks. Since that time, molecular biology has become an integral tool within both fisheries and aquaculture. A running list of molecular biology applications with aquaculture fisheries with emphasis on analysis is maintained here. Chapters include:</p>
-<ol style="list-style-type: decimal">
-<li>Introduction to molecular data from fisheries and aquaculture</li>
-<li>Differentiation of fish stocks using principle component analysis</li>
-<li>Linkage mapping</li>
-<li>Mapping of quantitative trait loci using Manhattan plots</li>
-</ol>
+<div id="an-introduction-to-linkage-mapping" class="section level1">
+<h1><span class="header-section-number">Chapter 3</span> An introduction to linkage mapping</h1>
+<p>Here we create a simple simulator to demonstrate the underlying principles of linkage mapping.</p>
+<p>Simulations are conducted using <code>AlphaSimR</code>. Analysis is carried out using Tidyverse tools such as <code>dplyr</code> and <code>ggplot</code>. The simulator is constructed with three independent variables, chromosome number, segregation site number, and offspring number as a foundation for understanding how these variables contribute to the precision and accuracy of the linkage maps themselves.</p>
+<div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb9-1"><a href="an-introduction-to-linkage-mapping.html#cb9-1"></a><span class="kw">library</span>(AlphaSimR)</span>
+<span id="cb9-2"><a href="an-introduction-to-linkage-mapping.html#cb9-2"></a><span class="kw">library</span>(tidyverse)</span>
+<span id="cb9-3"><a href="an-introduction-to-linkage-mapping.html#cb9-3"></a></span>
+<span id="cb9-4"><a href="an-introduction-to-linkage-mapping.html#cb9-4"></a>n_chr &lt;-<span class="st"> </span><span class="dv">1</span> <span class="co"># variable 1, number of chromosomes in genome</span></span>
+<span id="cb9-5"><a href="an-introduction-to-linkage-mapping.html#cb9-5"></a>n_seg &lt;-<span class="st"> </span><span class="dv">10</span> <span class="co"># variable 2, number of segregation sites per chromosome</span></span>
+<span id="cb9-6"><a href="an-introduction-to-linkage-mapping.html#cb9-6"></a>n_off &lt;-<span class="st"> </span><span class="dv">100</span> <span class="co"># variable 3. number of offspring per parental cross</span></span></code></pre></div>
+<p>The selection of parents is the most critical aspect of successful linkage mapping. Parents are not selected based on specific traits or physical health but on characteristics of their genomes that facilitate mapping. We will start with the most ‘textbook’ of approaches, crossing of a completely heterozygous individual (10) with a completely homozygous recessive individual (00). under such circumstances, offspring are expected to be 50% heterozygous (10) and 50% homozygous recessive (00). As such, any deviation from these percentages provides evidence for linkage between segregation sites, and the data needed to create the linkage map itself.</p>
+<div id="creating-the-parental-haplotypes" class="section level2">
+<h2><span class="header-section-number">3.1</span> Creating the parental haplotypes</h2>
+<p>Rather than using <code>quickHaplo()</code>, custom haplotypes will be defined using the <code>newMapPop()</code> function. As arguments, <code>newMapPop()</code> requires a genetic map and a list of corresponding haplotypes. The following code first creates the genetic map. The <code>seq()</code> function is used to create a numerical list from 0 to 1. By setting <code>length.out</code> equal to the <code>n_seg</code>, a list of equally sized segregation sites is created. It should be noted that defining the genetic map from 0 to 1 results in a chromosome length of 1 Morgan (NB: 100 cM).</p>
+<div class="sourceCode" id="cb10"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb10-1"><a href="an-introduction-to-linkage-mapping.html#cb10-1"></a>genMap &lt;-<span class="st"> </span><span class="kw">list</span>(<span class="kw">seq</span>(<span class="dv">0</span>, <span class="dv">1</span>, <span class="dt">length.out =</span> n_seg)) <span class="co"># list of segregation sites</span></span>
+<span id="cb10-2"><a href="an-introduction-to-linkage-mapping.html#cb10-2"></a><span class="kw">round</span>(<span class="kw">unlist</span>(genMap[<span class="dv">1</span>]),<span class="dv">2</span>) <span class="co"># show the list of segregation sites</span></span></code></pre></div>
+<pre><code>##  [1] 0.00 0.11 0.22 0.33 0.44 0.56 0.67 0.78 0.89 1.00</code></pre>
+<div class="sourceCode" id="cb12"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb12-1"><a href="an-introduction-to-linkage-mapping.html#cb12-1"></a>chr1 &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="kw">rep</span>(<span class="dv">1</span>, n_seg), <span class="co"># haplotype 1 of heterozygote parent</span></span>
+<span id="cb12-2"><a href="an-introduction-to-linkage-mapping.html#cb12-2"></a>          <span class="kw">rep</span>(<span class="dv">0</span>, n_seg), <span class="co"># haplotype 2 of heterozygote parent</span></span>
+<span id="cb12-3"><a href="an-introduction-to-linkage-mapping.html#cb12-3"></a>          <span class="kw">rep</span>(<span class="dv">0</span>, n_seg), <span class="co"># haplotypes 1 of homozygous parent</span></span>
+<span id="cb12-4"><a href="an-introduction-to-linkage-mapping.html#cb12-4"></a>          <span class="kw">rep</span>(<span class="dv">0</span>, n_seg)) <span class="co"># haplotypes 2 of homozygous parent</span></span>
+<span id="cb12-5"><a href="an-introduction-to-linkage-mapping.html#cb12-5"></a></span>
+<span id="cb12-6"><a href="an-introduction-to-linkage-mapping.html#cb12-6"></a>chr1 &lt;-<span class="st"> </span><span class="kw">matrix</span>(chr1, <span class="dt">nrow =</span> <span class="dv">4</span>, <span class="dt">ncol =</span> n_seg, <span class="dt">byrow =</span> <span class="ot">TRUE</span>) <span class="co"># coerce into a matrix</span></span>
+<span id="cb12-7"><a href="an-introduction-to-linkage-mapping.html#cb12-7"></a>chr1 <span class="co"># show the matrix of haplotypes</span></span></code></pre></div>
+<pre><code>##      [,1] [,2] [,3] [,4] [,5] [,6] [,7] [,8] [,9] [,10]
+## [1,]    1    1    1    1    1    1    1    1    1     1
+## [2,]    0    0    0    0    0    0    0    0    0     0
+## [3,]    0    0    0    0    0    0    0    0    0     0
+## [4,]    0    0    0    0    0    0    0    0    0     0</code></pre>
+<div class="sourceCode" id="cb14"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb14-1"><a href="an-introduction-to-linkage-mapping.html#cb14-1"></a>pop_haplos &lt;-<span class="st"> </span><span class="kw">newMapPop</span>(<span class="dt">genMap =</span> genMap,</span>
+<span id="cb14-2"><a href="an-introduction-to-linkage-mapping.html#cb14-2"></a>                        <span class="dt">haplotypes =</span> <span class="kw">list</span>(chr1))</span></code></pre></div>
 
+</div>
 </div>
             </section>
 
           </div>
         </div>
       </div>
+<a href="differentiation-of-populations-using-pca.html" class="navigation navigation-prev navigation-unique" aria-label="Previous page"><i class="fa fa-angle-left"></i></a>
 
-<a href="differentiation-of-populations-using-pca.html" class="navigation navigation-next navigation-unique" aria-label="Next page"><i class="fa fa-angle-right"></i></a>
     </div>
   </div>
 <script src="libs/gitbook-2.6.7/js/app.min.js"></script>
@@ -219,7 +237,7 @@ gitbook.start({
 "size": 2
 },
 "edit": {
-"link": "https://github.com/pura-acuicultura/Molecular-methods/edit/master/index.Rmd",
+"link": "https://github.com/pura-acuicultura/Molecular-methods/edit/master/03-linkage.Rmd",
 "text": "Edit"
 },
 "history": {
@@ -227,7 +245,7 @@ gitbook.start({
 "text": null
 },
 "view": {
-"link": "https://github.com/pura-acuicultura/Molecular-methods/blob/master/index.Rmd",
+"link": "https://github.com/pura-acuicultura/Molecular-methods/blob/master/03-linkage.Rmd",
 "text": null
 },
 "download": null,

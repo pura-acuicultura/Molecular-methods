@@ -1,0 +1,11 @@
+introduction
+differentiation-of-populations-using-pca
+introduction-1
+background-on-the-fish-populations
+snp-results
+pca-analysis
+assessment-of-the-principle-components
+pca-graphical-analysis
+identify-significant-snp
+an-introduction-to-linkage-mapping
+creating-the-parental-haplotypes

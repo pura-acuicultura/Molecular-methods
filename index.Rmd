@@ -1,9 +1,16 @@
 --- 
-title: "YOUR TITLE HERE"
-author: "YOUR NAME HERE"
+title: "Analysis of molecular data from fisheries and aquaculture"
+author: "PURA acuicultura"
 date: "`r Sys.Date()`"
 site: bookdown::bookdown_site
 ---
 
-# Down the rabbit-hole
+# Introduction
+
+It has been nearly 50 years since researchers first applied protein allozymes to the differentiation of fish stocks. Since that time, molecular biology has become an integral tool within both fisheries and aquaculture. A running list of molecular biology applications with aquaculture fisheries with emphasis on analysis is maintained here. Chapters include:
+
+1. Introduction to molecular data from fisheries and aquaculture
+2. Differentiation of fish stocks using principle component analysis
+3. Linkage mapping
+4. Mapping of quantitative trait loci using Manhattan plots
 
