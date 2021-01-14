@@ -9,3 +9,9 @@ pca-graphical-analysis
 identify-significant-snp
 an-introduction-to-linkage-mapping
 creating-the-parental-haplotypes
+set-simulation-parameters-and-simulate-parent-population
+cross-parents-and-simulate-offspring-population
+pull-genotype-data-for-parents-and-offspring
+pairwise-comparison-of-parentoffsping-genotypes
+understanding-the-pairwise-comparisons
+developing-the-linkage-map

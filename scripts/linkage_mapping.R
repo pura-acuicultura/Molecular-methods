@@ -10,17 +10,15 @@ n_seg <- 10 # segregation sites
 n_off <- 100 # number of offspring per cross
 
 #___1.1 Develop genetic map and define haplotypes ####
-genMap <- list(seq(0, 1, length.out = ss)) # list of segregation sites
+genMap <- list(seq(0, 1, length.out = n_seg)) # list of segregation sites
 genMap
 
-chr1 <- c(rep(1, ss), # haplotype 1 of heterozygote parent
-          rep(0, ss), # haplotype 2 of heterozygote parent
-          rep(0, ss*2))
-          # rep(sample(c(0, 1),
-          #            size = ss,
-          #            replace = TRUE), 2)) # haplotypes 1/2 for homozygous parent
+chr1 <- c(rep(1, n_seg), # haplotype 1 of heterozygote parent
+          rep(0, n_seg), # haplotype 2 of heterozygote parent
+          rep(0, n_seg), # haplotype 1 of homozygote parent
+          rep(0, n_seg)) # haplotype 2 of homozygote parent)
 
-chr1 <- matrix(chr1, nrow = 4, ncol = ss, byrow = TRUE) # coerce into a matrix
+chr1 <- matrix(chr1, nrow = 4, ncol = n_seg, byrow = TRUE) # coerce into a matrix
 chr1
 
 pop_haplos <- newMapPop(genMap = genMap,
@@ -43,7 +41,7 @@ crossPlan
 
 pop_1 <- makeCross(pop = pop_0, # Pop-class object
                    crossPlan = crossPlan, # two column matrix indicating female/male cross made
-                   nProgeny = 1000, # number of progeny per cross
+                   nProgeny = n_off, # number of progeny per cross
                    simParam = SP) # simParam object
 
 #___1.4 Pull genotypes of parents and offspring ####
@@ -58,16 +56,17 @@ df_O <- pullSegSiteGeno(pop = pop_1, # Pop-class object
                           simParam = SP) # SimParam object
 df_O <- as.data.frame(df_O)
 df_O
+
 #___1.5 Pairwise analysis for recombinant genotype frequency #####
 
 # develop a pairwise plan
 
-a <- 1:(ss-1)
-ss1 <- rep(a, (ss-a))
-foo <- function(b){c(1:(ss))[b:ss]}
-ss2 <- unlist(lapply(2:(ss), FUN = foo))
+a <- 1:(n_seg-1)
+ss1 <- rep(a, (n_seg-a))
+foo <- function(b){c(1:(n_seg))[b:n_seg]}
+ss2 <- unlist(lapply(2:(n_seg), FUN = foo))
 pair_plan <- data.frame(ss1, ss2)  
-pair_plan       
+pair_plan      
 
 # develop a function for calculating recombinants based on pairs
 

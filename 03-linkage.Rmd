@@ -17,6 +17,7 @@ Simulations are conducted using `AlphaSimR`. Analysis is carried out using Tidyv
 ```{r lm_variables, warning=FALSE, message=FALSE, error=FALSE}
 library(AlphaSimR)
 library(tidyverse)
+library(knitr)
 
 n_chr <- 1 # variable 1, number of chromosomes in genome
 n_seg <- 10 # variable 2, number of segregation sites per chromosome
@@ -27,7 +28,7 @@ The selection of parents is the most critical aspect of successful linkage mappi
 
 ## Creating the parental haplotypes
 
-Rather than using `quickHaplo()`, custom haplotypes will be defined using the `newMapPop()` function. As arguments, `newMapPop()` requires a genetic map and a list of corresponding haplotypes. The following code first creates the genetic map. The `seq()` function is used to create a numerical list from 0 to 1. By setting `length.out` equal to the `n_seg`, a list of equally sized segregation sites is created. It should be noted that defining the genetic map from 0 to 1 results in a chromosome length of 1 Morgan (NB: 100 cM).
+Rather than using `quickHaplo()`, custom haplotypes will be defined using the `newMapPop()` function. As arguments, `newMapPop()` requires a genetic map and a list of corresponding haplotypes. The following code first creates the genetic map. The `seq()` function is used to create a numerical list from 0 to 1. By setting `length.out` equal to the `n_seg`, a list of equally sized segregation sites is created. It should be noted that defining the genetic map from 0 to 1 results in a chromosome length of 1 Morgan (NB: 100 cM). Defining the haplotypes... 
 
 ```{r lm_haplotypes}
 genMap <- list(seq(0, 1, length.out = n_seg)) # list of segregation sites
@@ -44,4 +45,104 @@ chr1 # show the matrix of haplotypes
 pop_haplos <- newMapPop(genMap = genMap,
                         haplotypes = list(chr1))
 ```
+
+## Set simulation parameters and simulate parent population
+
+```{r lm_simParams}
+SP = SimParam$new(pop_haplos) # create a variable for new simulation parameters
+SP$setSexes("yes_sys") # set sexes systematically
+
+pop_0 <- newPop(rawPop = pop_haplos, # object of MapPop-class
+                simParam = SP) # SimParam objects
+```
+
+## Cross parents and simulate offspring population
+
+```{r lm_cross}
+crossPlan <- matrix(c(1, 2),
+                    nrow = 1,
+                    ncol = 2) # develop a simple cross plan
+
+pop_1 <- makeCross(pop = pop_0, # Pop-class object
+                   crossPlan = crossPlan, # two column matrix indicating female/male cross made
+                   nProgeny = n_off, # number of progeny per cross
+                   simParam = SP) # simParam object
+```
+
+## Pull genotype data for parents and offspring
+
+```{r lm_genotype_dfs}
+
+df_P <- pullSegSiteGeno(pop = pop_0, # Pop-class object
+                      chr = 1, # chromosome number, NULL = all
+                      simParam = SP) # SimParam object
+df_P <- as.data.frame(df_P)
+
+df_O <- pullSegSiteGeno(pop = pop_1, # Pop-class object
+                          chr = 1, # chromosome number, NULL = all
+                          simParam = SP) # SimParam object
+df_O <- as.data.frame(df_O)
+
+df_P[, 1:10]
+df_O[1:10, 1:10]
+
+```
+
+## Pairwise comparison of parent/offsping genotypes
+
+Recombination is assessed as the percentage of crossover events occurring between two genes, or segregation sites in our case. If physical map data exists, one might investigate recombination across a chromosome by performing pairwise assessments of each segregation site against it's nearest downstream neighbor. Under such a scenario, a sum of crossover events provides the total length of the chromosome in units of genetic linkage. 
+
+When physical map data does not exist, as was the case for all historic linkage mapping, the assessment is more complex. We will employ what is perhaps the most straightforward approach, performing pairwise assessments of all possible segregation site combinations. As can be imagined, this approach can become unwieldy and computationally inefficient as the number of segregation sites (NB: molecular markers) increases. Nonetheless, it is a good method for understanding the basic principles underlying linkage mapping.
+
+We start the assessment by making a data frame of all possible pairwise combination. The data frame called `pair_plan` in the following code consists of two columns, `ss1` and `ss2`. In this case, `ss` stands for 'segregation site' such that each row of the data frame expresses a 'pair' of segregation sites for assessment. The code was written to create the data frame based on the number of segregation sites. Using 5 segregation sites as an example, the first two lines results in a vector of `1,1,1,1,2,2,2,3,3,4` while the third and fourth lines result in a vector of `2,3,4,5,3,4,5,4,5,5`. As such, the resulting data frame contains all unique pairs and excludes the comparison of segregation sites with themselves. While the code get s the job done there are certainly a multitude of other more efficient ways to do the same thing.
+
+```{r lm_pairwise_plan}
+a <- 1:(n_seg-1)
+ss1 <- rep(a, (n_seg - a))
+
+foo <- function(b){c(1:(n_seg))[b:n_seg]}
+ss2 <- unlist(lapply(2:(n_seg), FUN = foo))
+
+pair_plan <- data.frame(ss1, ss2)  
+pair_plan 
+```
+
+
+
+```{r lm_pairwise_function}
+pws <- 1:dim(pair_plan)[1]
+
+rgf <- function(pws){
+  
+  ssA <- pair_plan[pws, 1]
+  ssB <- pair_plan[pws, 2]
+  
+  p1 <- paste(df_P[1,ssA], df_P[2,ssB], sep = "")
+  p2 <- paste(df_P[2,ssA], df_P[1,ssB], sep = "")
+  
+  dplyr::select(df_O, df_O[,ssA], df_O[,ssB]) %>%
+    mutate(pair = paste(df_O[,ssA], df_O[,ssB], sep = "")) %>%
+    mutate(recomb = ifelse(pair %in% c(p1, p2), 1, 0)) %>%
+    summarize(sum = sum(recomb)/length(pop_1@id))  
+}
+
+reco <- unlist(lapply(pws, FUN = rgf))
+```
+
+## Understanding the pairwise comparisons 
+
+```{r}
+# actual linkage distances between segregation sites
+pair_plan %>%
+  group_by(ss1) %>%
+  mutate(min = min(reco)) %>%
+  ungroup() %>%
+  filter(reco == min)
+
+# verify the order of the segregation sites
+pair_plan %>%
+  filter(ss1 == 1)
+```
+
+## developing the linkage map
 
